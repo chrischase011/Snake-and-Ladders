@@ -24,8 +24,10 @@ public class Main : MonoBehaviour
     private int turn = 1;
 
     // Sprites container
-    private Sprite[] diceSides;
-    public SpriteRenderer rend;
+    private Sprite[] diceSides1;
+    private Sprite[] diceSides2;
+    public SpriteRenderer rend1;
+    public SpriteRenderer rend2;
 
     //private int[] edges = {10,20,30,40,50,60,70,80,90};
     private int[] ladders = {3,27,39,87};
@@ -36,8 +38,8 @@ public class Main : MonoBehaviour
     public Transform player2;
 
     // Current position of the player based on squares
-    int numP1 = 1;
-    int numP2 = 1;
+    public int numP1 = 1;
+    public int numP2 = 1;
     
     // UI button and text
     [SerializeField]
@@ -46,17 +48,47 @@ public class Main : MonoBehaviour
     private Text btnText;
 
     int win = 0;
+
+
+    public int p1;
+    public int p2;
+
+    [SerializeField]
+    private AudioSource jumpSource;
+    [SerializeField]
+    private AudioClip jumpClip;
+
+    [SerializeField]
+    private AudioSource pwSrc;
+    [SerializeField]
+    private AudioClip p1wClip;
+    [SerializeField]
+    private AudioClip p2wClip;
+
     // Start is called before the first frame update
     void Start()
     {
         //rend = gameObject.GetComponent<SpriteRenderer>();
-        diceSides = Resources.LoadAll<Sprite>("DiceSides/");
+        diceSides1 = Resources.LoadAll<Sprite>("DiceSides/");
+        diceSides2 = Resources.LoadAll<Sprite>("DiceSides/");
+
+
+        //if (!PlayerPrefs.HasKey("quality"))
+        //{
+        //    QualitySettings.SetQualityLevel(2, true);
+        //}
+        //else
+        //{
+        //    QualitySettings.SetQualityLevel(PlayerPrefs.GetInt("quality"));
+        //}
+
     }
 
     // Update is called once per frame
     void Update()
     {
-       
+        p1 = numP1;
+        p2 = numP2;
     }
     public void RollDice()
     {
@@ -66,7 +98,8 @@ public class Main : MonoBehaviour
 
     public IEnumerator rollDice()
     {
-        int randomDiceSide = 0;
+        int randomDiceSide1 = 0;
+        int randomDiceSides2 = 0;
         int finalSide = 0;
 
         btnRoll.enabled = false;
@@ -76,14 +109,15 @@ public class Main : MonoBehaviour
             btnText.text = "Player 2 is rolling";
         for (int i = 0; i <= 20; i++)
         {
-            randomDiceSide = Random.Range(0, 5);
-            rend.sprite = diceSides[randomDiceSide];
-
+            randomDiceSide1 = Random.Range(0, 6);
+            randomDiceSides2 = Random.Range(0, 6);
+            rend1.sprite = diceSides1[randomDiceSide1];
+            rend2.sprite = diceSides2[randomDiceSides2];
             yield return new WaitForSeconds(0.05f);
             
         }
 
-        finalSide = randomDiceSide + 1;
+        finalSide = (randomDiceSide1 +randomDiceSides2) + 2;
         StartCoroutine(Turns(finalSide));
 
         if (turn == 1)
@@ -91,7 +125,7 @@ public class Main : MonoBehaviour
         else if (turn == 2)
             btnText.text = "Player 2 is moving";
 
-       // Debug.Log(finalSide);
+        Debug.Log(finalSide);
     }
 
     IEnumerator Turns(int dice)
@@ -121,12 +155,22 @@ public class Main : MonoBehaviour
                 {
                     player1.transform.position = new Vector2(player1.position.x - 40f, player1.position.y);
                 }
+                else if((numP1 > 100))
+                {
+                    player1.transform.position = new Vector2(player1.position.x + 40f, player1.position.y);
+                }
+
+                jumpSource.PlayOneShot(jumpClip);
+
                 if (numP1 < 100)
                     numP1++;
-                else
+                else if(numP1 > 100)
                     numP1--;
-                yield return new WaitForSeconds(1f);
+                Debug.Log("P1:" + numP1 + " | P2: " + numP2);
+                yield return new WaitForSeconds(0.6f);
             }
+            getTurn = turn;
+            getP1 = numP1;
             checkSnakes(numP1);
             checkLadder(numP1);
             if (numP1 == 100)
@@ -143,7 +187,7 @@ public class Main : MonoBehaviour
                 {
                     player2.transform.position = new Vector2(player2.position.x, player2.position.y + 45);
                 }
-                else if(numP2 == 20 || numP2 == 40 ||  numP2 == 60 || numP1 == 70 || numP2 == 50 || numP2 == 80 || numP2 == 90)
+                else if(numP2 == 20 || numP2 == 40 ||  numP2 == 60 || numP2 == 70 || numP2 == 50 || numP2 == 80 || numP2 == 90)
                 {
                     player2.transform.position = new Vector2(player2.position.x, player2.position.y + 40);
                 }
@@ -157,13 +201,18 @@ public class Main : MonoBehaviour
                 {
                     player2.transform.position = new Vector2(player2.position.x - 40f, player2.position.y);
                 }
+                jumpSource.PlayOneShot(jumpClip);
                 if (numP2 < 100)
                     numP2++;
-                else
+                else if (numP2 > 100)
                     numP2--;
+
                 Debug.Log("P1:" + numP1 + " | P2: " + numP2);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(0.6f);
             }
+
+            getTurn = turn;
+            getP2 = numP2;
             checkSnakes(numP2);
             checkLadder(numP2);
             
@@ -184,11 +233,13 @@ public class Main : MonoBehaviour
         {
             btnRoll.enabled = false;
             btnText.text = "Player 1 wins.";
+            pwSrc.PlayOneShot(p1wClip);
         }
         else if(win == 2)
         {
             btnRoll.enabled = false;
             btnText.text = "Player 2 wins.";
+            pwSrc.PlayOneShot(p2wClip);
         }
         Debug.Log("P1:" + numP1 + " | P2: " + numP2);
     }
@@ -218,7 +269,7 @@ public class Main : MonoBehaviour
             else if (temp == 39)
             {
                 numP1 = 43;
-                player1.transform.position = new Vector2(player1.transform.position.x + 40, player1.transform.position.y + 45);
+                player1.transform.position = new Vector2(player1.transform.position.x + 40, player1.transform.position.y + 40);
             }
             else if (temp == 87)
             {
@@ -248,7 +299,7 @@ public class Main : MonoBehaviour
             else if (temp == 39)
             {
                 numP2 = 43;
-                player2.transform.position = new Vector2(player2.transform.position.x + 40, player2.transform.position.y + 45);
+                player2.transform.position = new Vector2(player2.transform.position.x + 40, player2.transform.position.y + 40);
             }
             else if (temp == 87)
             {
@@ -345,14 +396,15 @@ public class Main : MonoBehaviour
             Debug.Log("Player 1 Win");
             btnRoll.enabled = false;
             win = 1;
-            StartCoroutine(Restart());
+
+           // StartCoroutine(Restart());
         }
         else if(turn == 2)
         {
             Debug.Log("Player 2 Win");
             btnRoll.enabled = false;
             win = 2;
-            StartCoroutine(Restart());
+            //StartCoroutine(Restart());
         }
 
     }
@@ -362,4 +414,8 @@ public class Main : MonoBehaviour
         yield return new WaitForSeconds(10f);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
+
+    public int getP1 { get; set; }
+    public int getP2 { get; set; }
+    public int getTurn { get; set; }
 }
