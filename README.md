@@ -5,7 +5,7 @@ This is a finished version of our snake and ladder game called **Snake and Riddl
 
 Thanks to my team
 
-**Joshua Cancela** - *The Designer* For fixing some codes and fixing the overall design of the game.
+**Joshua Cancela** - *The Designer* For fixing some codes and fixing the overall design of the game. <br>
 **Erwin John Rosquillo** - *The Sound Engineer* For the audios and other concepts needed for the game.
 
 
